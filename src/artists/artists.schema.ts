@@ -10,7 +10,9 @@ export class Artist {
   name: string;
 
   @Prop()
-  description: string;
+  info: string;
+  @Prop()
+  image: string;
 }
 
 export const ArtistSchema = SchemaFactory.createForClass(Artist);
