@@ -8,11 +8,10 @@ export type ArtistDocument = Artist & Document;
 export class Artist {
   @Prop({ required: true })
   name: string;
-
   @Prop()
   info: string;
   @Prop()
-  image: string;
+  image: string | null;
 }
 
 export const ArtistSchema = SchemaFactory.createForClass(Artist);
