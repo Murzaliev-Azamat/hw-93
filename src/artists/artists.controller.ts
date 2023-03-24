@@ -1,23 +1,27 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
-import { Artist, ArtistDocument } from './artists.schema';
+import { Artist, ArtistDocument } from '../schemas/artists.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateArtistDto } from './create-artist.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Album, AlbumDocument } from '../schemas/albums.schema';
 
 @Controller('artists')
 export class ArtistsController {
   constructor(
     @InjectModel(Artist.name)
     private artistModel: Model<ArtistDocument>,
+    @InjectModel(Album.name)
+    private albumModel: Model<AlbumDocument>,
   ) {}
   @Get()
   async getAll() {
@@ -29,9 +33,9 @@ export class ArtistsController {
   }
   @Post()
   @UseInterceptors(
-    FileInterceptor('image', { dest: '.public/uploads/artists' }),
+    FileInterceptor('image', { dest: './public/uploads/artists' }),
   )
-  async creatArtist(
+  async createArtist(
     @UploadedFile() file: Express.Multer.File,
     @Body() artistData: CreateArtistDto,
   ) {
@@ -41,5 +45,19 @@ export class ArtistsController {
       image: file ? '/uploads/artists/' + file.filename : null,
     });
     return artist.save();
+  }
+  @Delete(':id')
+  async deleteArtist(@Param('id') id: string) {
+    const artist = await this.artistModel.findOne({ _id: id });
+    if (artist) {
+      const albums = this.albumModel.find({ artist: artist._id });
+      await this.artistModel.deleteOne({ _id: artist._id });
+      await this.albumModel.deleteMany({ artist: artist._id });
+      //       if (albums) {
+      //         for (const album of albums) {
+      //           await Track.deleteMany({ album: album._id });
+      //         }
+    }
+    return { message: 'Artist deleted' };
   }
 }
