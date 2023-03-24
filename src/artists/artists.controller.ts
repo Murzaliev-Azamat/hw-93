@@ -14,6 +14,7 @@ import { Model } from 'mongoose';
 import { CreateArtistDto } from './create-artist.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Album, AlbumDocument } from '../schemas/albums.schema';
+import { Track, TrackDocument } from '../schemas/tracks.schema';
 
 @Controller('artists')
 export class ArtistsController {
@@ -22,6 +23,8 @@ export class ArtistsController {
     private artistModel: Model<ArtistDocument>,
     @InjectModel(Album.name)
     private albumModel: Model<AlbumDocument>,
+    @InjectModel(Track.name)
+    private trackModel: Model<TrackDocument>,
   ) {}
   @Get()
   async getAll() {
@@ -50,13 +53,14 @@ export class ArtistsController {
   async deleteArtist(@Param('id') id: string) {
     const artist = await this.artistModel.findOne({ _id: id });
     if (artist) {
-      const albums = this.albumModel.find({ artist: artist._id });
+      const albums = await this.albumModel.find({ artist: artist._id });
       await this.artistModel.deleteOne({ _id: artist._id });
       await this.albumModel.deleteMany({ artist: artist._id });
-      //       if (albums) {
-      //         for (const album of albums) {
-      //           await Track.deleteMany({ album: album._id });
-      //         }
+      if (albums) {
+        for (const album of albums) {
+          await this.trackModel.deleteMany({ album: album._id });
+        }
+      }
     }
     return { message: 'Artist deleted' };
   }

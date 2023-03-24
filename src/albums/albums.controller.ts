@@ -14,12 +14,15 @@ import { Model } from 'mongoose';
 import { Album, AlbumDocument } from '../schemas/albums.schema';
 import { CreateAlbumDto } from './create-albums.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Track, TrackDocument } from '../schemas/tracks.schema';
 
 @Controller('albums')
 export class AlbumsController {
   constructor(
     @InjectModel(Album.name)
     private albumModel: Model<AlbumDocument>,
+    @InjectModel(Track.name)
+    private trackModel: Model<TrackDocument>,
   ) {}
   @Get()
   async getAll(@Query() query) {
@@ -54,7 +57,7 @@ export class AlbumsController {
     const album = await this.albumModel.findOne({ _id: id });
     if (album) {
       await this.albumModel.deleteOne({ _id: album._id });
-      // await this.trackModel.deleteMany({ album: album._id });
+      await this.trackModel.deleteMany({ album: album._id });
     }
     return { message: 'Album deleted' };
   }
