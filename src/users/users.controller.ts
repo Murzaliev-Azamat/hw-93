@@ -18,6 +18,7 @@ export class UsersController {
       email: req.body.email,
       password: req.body.password,
       displayName: req.body.displayName,
+      role: req.body.role,
     });
 
     user.generateToken();
